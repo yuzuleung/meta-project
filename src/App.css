@@ -217,6 +217,13 @@ a {
   transform: translateY(-2px);
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+}
+
 .button-primary {
   background: var(--olive-deep);
   color: #fff9f2;
@@ -614,6 +621,10 @@ a {
   font-size: 0.92rem;
 }
 
+.field-error {
+  color: #a43f2d;
+}
+
 .reservation-form input,
 .reservation-form select,
 .reservation-form textarea {
@@ -625,6 +636,19 @@ a {
   color: var(--ink);
   font: inherit;
   resize: vertical;
+}
+
+.reservation-form input[aria-invalid='true'],
+.reservation-form select[aria-invalid='true'],
+.reservation-form textarea[aria-invalid='true'] {
+  border-color: #c65d2e;
+  background: rgba(255, 244, 239, 0.96);
+}
+
+.error-message {
+  color: #a43f2d;
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .reservation-field-wide,

@@ -64,6 +64,63 @@ const reservationNavLinks = [
   { label: 'Login', href: '#/login' },
 ];
 
+const defaultReservationForm = {
+  fullName: '',
+  email: '',
+  phone: '',
+  guests: '',
+  date: '',
+  time: '',
+  seating: '',
+  requests: '',
+};
+
+function validateReservationForm(values) {
+  const errors = {};
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phonePattern = /^[+]?[\d\s()-]{8,20}$/;
+
+  if (!values.fullName.trim()) {
+    errors.fullName = 'Please enter your full name.';
+  } else if (values.fullName.trim().length < 2) {
+    errors.fullName = 'Name should be at least 2 characters.';
+  }
+
+  if (!values.email.trim()) {
+    errors.email = 'Please enter your email address.';
+  } else if (!emailPattern.test(values.email.trim())) {
+    errors.email = 'Please enter a valid email address.';
+  }
+
+  if (!values.phone.trim()) {
+    errors.phone = 'Please enter your phone number.';
+  } else if (!phonePattern.test(values.phone.trim())) {
+    errors.phone = 'Please enter a valid phone number.';
+  }
+
+  if (!values.guests) {
+    errors.guests = 'Please select the number of guests.';
+  }
+
+  if (!values.date) {
+    errors.date = 'Please choose a reservation date.';
+  }
+
+  if (!values.time) {
+    errors.time = 'Please choose a reservation time.';
+  }
+
+  if (!values.seating) {
+    errors.seating = 'Please choose a seating preference.';
+  }
+
+  if (!values.requests.trim()) {
+    errors.requests = 'Please add your special requests or write "None".';
+  }
+
+  return errors;
+}
+
 function Header({ navLinks }) {
   return (
     <header className="topbar">
@@ -300,6 +357,66 @@ function HomePage() {
 }
 
 function ReservationsPage() {
+  const [formValues, setFormValues] = useState(defaultReservationForm);
+  const [errors, setErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const isFormComplete = Object.values(formValues).every(
+    (value) => value.trim() !== ''
+  );
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    const nextValues = {
+      ...formValues,
+      [name]: value,
+    };
+
+    setFormValues(nextValues);
+
+    if (isSubmitted || touchedFields[name]) {
+      setErrors(validateReservationForm(nextValues));
+    }
+  };
+
+  const handleBlur = (event) => {
+    const { name } = event.target;
+    const nextTouched = {
+      ...touchedFields,
+      [name]: true,
+    };
+
+    setTouchedFields(nextTouched);
+    setErrors(validateReservationForm(formValues));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const validationErrors = validateReservationForm(formValues);
+
+    setIsSubmitted(true);
+    setTouchedFields({
+      fullName: true,
+      email: true,
+      phone: true,
+      guests: true,
+      date: true,
+      time: true,
+      seating: true,
+      requests: true,
+    });
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+  };
+
+  const getFieldError = (fieldName) =>
+    touchedFields[fieldName] || isSubmitted ? errors[fieldName] : '';
+
   return (
     <>
       <Header navLinks={reservationNavLinks} />
@@ -339,59 +456,152 @@ function ReservationsPage() {
             <div className="reservation-form-card">
               <p className="booking-label">Booking form</p>
               <h2>Complete your reservation</h2>
-              <form className="reservation-form">
-                <label>
+              <form className="reservation-form" noValidate onSubmit={handleSubmit}>
+                <label className={getFieldError('fullName') ? 'field-error' : ''}>
                   Full name
-                  <input type="text" placeholder="Your name" />
+                  <input
+                    type="text"
+                    name="fullName"
+                    placeholder="Your name"
+                    value={formValues.fullName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('fullName'))}
+                  />
+                  {getFieldError('fullName') && (
+                    <span className="error-message">{getFieldError('fullName')}</span>
+                  )}
                 </label>
-                <label>
+                <label className={getFieldError('email') ? 'field-error' : ''}>
                   Email
-                  <input type="email" placeholder="name@example.com" />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="name@example.com"
+                    value={formValues.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('email'))}
+                  />
+                  {getFieldError('email') && (
+                    <span className="error-message">{getFieldError('email')}</span>
+                  )}
                 </label>
-                <label>
+                <label className={getFieldError('phone') ? 'field-error' : ''}>
                   Phone number
-                  <input type="tel" placeholder="+81 90 1234 5678" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="+81 90 1234 5678"
+                    value={formValues.phone}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('phone'))}
+                  />
+                  {getFieldError('phone') && (
+                    <span className="error-message">{getFieldError('phone')}</span>
+                  )}
                 </label>
-                <label>
+                <label className={getFieldError('guests') ? 'field-error' : ''}>
                   Guests
-                  <select defaultValue="2 guests">
-                    <option>1 guest</option>
-                    <option>2 guests</option>
-                    <option>4 guests</option>
-                    <option>6 guests</option>
-                    <option>8 guests</option>
+                  <select
+                    name="guests"
+                    value={formValues.guests}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('guests'))}
+                  >
+                    <option value="">Select guests</option>
+                    <option value="1 guest">1 guest</option>
+                    <option value="2 guests">2 guests</option>
+                    <option value="4 guests">4 guests</option>
+                    <option value="6 guests">6 guests</option>
+                    <option value="8 guests">8 guests</option>
                   </select>
+                  {getFieldError('guests') && (
+                    <span className="error-message">{getFieldError('guests')}</span>
+                  )}
                 </label>
-                <label>
+                <label className={getFieldError('date') ? 'field-error' : ''}>
                   Date
-                  <input type="date" defaultValue="2026-03-21" />
+                  <input
+                    type="date"
+                    name="date"
+                    value={formValues.date}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('date'))}
+                  />
+                  {getFieldError('date') && (
+                    <span className="error-message">{getFieldError('date')}</span>
+                  )}
                 </label>
-                <label>
+                <label className={getFieldError('time') ? 'field-error' : ''}>
                   Time
-                  <select defaultValue="19:00">
-                    <option>11:30</option>
-                    <option>13:00</option>
-                    <option>17:30</option>
-                    <option>19:00</option>
-                    <option>20:30</option>
+                  <select
+                    name="time"
+                    value={formValues.time}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('time'))}
+                  >
+                    <option value="">Select time</option>
+                    <option value="11:30">11:30</option>
+                    <option value="13:00">13:00</option>
+                    <option value="17:30">17:30</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:30">20:30</option>
                   </select>
+                  {getFieldError('time') && (
+                    <span className="error-message">{getFieldError('time')}</span>
+                  )}
                 </label>
-                <label className="reservation-field-wide">
+                <label
+                  className={`reservation-field-wide ${
+                    getFieldError('seating') ? 'field-error' : ''
+                  }`}
+                >
                   Seating preference
-                  <select defaultValue="Indoor dining room">
-                    <option>Indoor dining room</option>
-                    <option>Terrace seating</option>
-                    <option>Chef&apos;s counter</option>
+                  <select
+                    name="seating"
+                    value={formValues.seating}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('seating'))}
+                  >
+                    <option value="">Select seating</option>
+                    <option value="Indoor dining room">Indoor dining room</option>
+                    <option value="Terrace seating">Terrace seating</option>
+                    <option value="Chef's counter">Chef&apos;s counter</option>
                   </select>
+                  {getFieldError('seating') && (
+                    <span className="error-message">{getFieldError('seating')}</span>
+                  )}
                 </label>
-                <label className="reservation-field-wide">
+                <label
+                  className={`reservation-field-wide ${
+                    getFieldError('requests') ? 'field-error' : ''
+                  }`}
+                >
                   Special requests
                   <textarea
+                    name="requests"
                     rows="5"
                     placeholder="Birthday message, allergies, accessibility needs..."
+                    value={formValues.requests}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    aria-invalid={Boolean(getFieldError('requests'))}
                   />
+                  {getFieldError('requests') && (
+                    <span className="error-message">{getFieldError('requests')}</span>
+                  )}
                 </label>
-                <button className="button button-primary" type="submit">
+                <button
+                  className="button button-primary"
+                  type="submit"
+                  disabled={!isFormComplete}
+                >
                   Confirm reservation
                 </button>
               </form>
