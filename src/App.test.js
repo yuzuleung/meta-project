@@ -3,6 +3,27 @@ import App from './App';
 
 window.scrollTo = jest.fn();
 
+const fillBaseReservationForm = () => {
+  fireEvent.change(screen.getByLabelText(/full name/i), {
+    target: { value: 'Alex Chen' },
+  });
+  fireEvent.change(screen.getByLabelText(/^email$/i), {
+    target: { value: 'alex@example.com' },
+  });
+  fireEvent.change(screen.getByLabelText(/phone number/i), {
+    target: { value: '+81 90 1234 5678' },
+  });
+  fireEvent.change(screen.getByLabelText(/guests/i), {
+    target: { value: '2 guests' },
+  });
+  fireEvent.change(screen.getByLabelText(/seating preference/i), {
+    target: { value: 'Indoor dining room' },
+  });
+  fireEvent.change(screen.getByLabelText(/special requests/i), {
+    target: { value: 'None' },
+  });
+};
+
 beforeEach(() => {
   window.location.hash = '#/';
   window.fetchAPI = jest.fn((date) => {
@@ -28,11 +49,12 @@ afterEach(() => {
 
 test('renders the Little Lemon hero heading', () => {
   render(<App />);
-  const headingElement = screen.getByRole('heading', {
-    level: 1,
-    name: /little lemon/i,
-  });
-  expect(headingElement).toBeInTheDocument();
+  expect(
+    screen.getByRole('heading', {
+      level: 1,
+      name: /little lemon/i,
+    })
+  ).toBeInTheDocument();
 });
 
 test('loads available times from the API based on the selected date', () => {
@@ -50,6 +72,58 @@ test('loads available times from the API based on the selected date', () => {
   expect(screen.getByRole('option', { name: '17:30' })).toBeInTheDocument();
   expect(screen.getByRole('option', { name: '19:00' })).toBeInTheDocument();
   expect(timeSelect).not.toBeDisabled();
+});
+
+test('shows no times available when the API returns an empty list', () => {
+  window.location.hash = '#/reservations';
+  render(<App />);
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-25' },
+  });
+
+  expect(screen.getByLabelText(/^time$/i)).toBeDisabled();
+  expect(
+    screen.getByRole('option', { name: /no times available/i })
+  ).toBeInTheDocument();
+});
+
+test('replaces previous time options when the selected date changes', () => {
+  window.location.hash = '#/reservations';
+  render(<App />);
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-21' },
+  });
+  expect(screen.getByRole('option', { name: '19:00' })).toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-22' },
+  });
+
+  expect(screen.getByRole('option', { name: '18:00' })).toBeInTheDocument();
+  expect(screen.queryByRole('option', { name: '19:00' })).not.toBeInTheDocument();
+});
+
+test('clears the selected time when it becomes unavailable after changing the date', () => {
+  window.location.hash = '#/reservations';
+  render(<App />);
+
+  const timeSelect = screen.getByLabelText(/^time$/i);
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-21' },
+  });
+  fireEvent.change(timeSelect, {
+    target: { value: '19:00' },
+  });
+  expect(timeSelect).toHaveValue('19:00');
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-22' },
+  });
+
+  expect(timeSelect).toHaveValue('');
 });
 
 test('reservation button enables only after completion and shows invalid field errors', () => {
@@ -100,29 +174,13 @@ test('submits the reservation through the API and navigates to confirmation page
   window.location.hash = '#/reservations';
   render(<App />);
 
-  fireEvent.change(screen.getByLabelText(/full name/i), {
-    target: { value: 'Alex Chen' },
-  });
-  fireEvent.change(screen.getByLabelText(/^email$/i), {
-    target: { value: 'alex@example.com' },
-  });
-  fireEvent.change(screen.getByLabelText(/phone number/i), {
-    target: { value: '+81 90 1234 5678' },
-  });
-  fireEvent.change(screen.getByLabelText(/guests/i), {
-    target: { value: '2 guests' },
-  });
+  fillBaseReservationForm();
+
   fireEvent.change(screen.getByLabelText(/^date$/i), {
     target: { value: '2026-03-21' },
   });
   fireEvent.change(screen.getByLabelText(/^time$/i), {
     target: { value: '19:00' },
-  });
-  fireEvent.change(screen.getByLabelText(/seating preference/i), {
-    target: { value: 'Indoor dining room' },
-  });
-  fireEvent.change(screen.getByLabelText(/special requests/i), {
-    target: { value: 'None' },
   });
 
   fireEvent.click(
@@ -145,4 +203,76 @@ test('submits the reservation through the API and navigates to confirmation page
     screen.getByRole('heading', { name: /your reservation is confirmed/i })
   ).toBeInTheDocument();
   expect(window.location.hash).toBe('#/confirmed-booking');
+});
+
+test('shows an error and does not navigate when submitAPI returns false', () => {
+  window.location.hash = '#/reservations';
+  window.submitAPI = jest.fn(() => false);
+  render(<App />);
+
+  fillBaseReservationForm();
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-21' },
+  });
+  fireEvent.change(screen.getByLabelText(/^time$/i), {
+    target: { value: '19:00' },
+  });
+
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: /confirm reservation/i,
+    })
+  );
+
+  expect(window.submitAPI).toHaveBeenCalled();
+  expect(window.location.hash).toBe('#/reservations');
+  expect(
+    screen.getByText(
+      /we could not complete your reservation\. please choose another time and try again\./i
+    )
+  ).toBeInTheDocument();
+});
+
+test('falls back safely when fetchAPI is unavailable', () => {
+  window.location.hash = '#/reservations';
+  delete window.fetchAPI;
+  render(<App />);
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-21' },
+  });
+
+  expect(screen.getByLabelText(/^time$/i)).toBeDisabled();
+  expect(
+    screen.getByRole('option', { name: /no times available/i })
+  ).toBeInTheDocument();
+});
+
+test('falls back safely when submitAPI is unavailable', () => {
+  window.location.hash = '#/reservations';
+  delete window.submitAPI;
+  render(<App />);
+
+  fillBaseReservationForm();
+
+  fireEvent.change(screen.getByLabelText(/^date$/i), {
+    target: { value: '2026-03-21' },
+  });
+  fireEvent.change(screen.getByLabelText(/^time$/i), {
+    target: { value: '19:00' },
+  });
+
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: /confirm reservation/i,
+    })
+  );
+
+  expect(window.location.hash).toBe('#/reservations');
+  expect(
+    screen.getByText(
+      /we could not complete your reservation\. please choose another time and try again\./i
+    )
+  ).toBeInTheDocument();
 });
