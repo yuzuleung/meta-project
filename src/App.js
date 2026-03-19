@@ -64,6 +64,9 @@ const reservationNavLinks = [
   { label: 'Login', href: '#/login' },
 ];
 
+const homepageHeroImage =
+  'https://images.unsplash.com/photo-1745818016691-14c4020a73ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpdGFsaWFuJTIwcmVzdGF1cmFudCUyMGludGVyaW9yJTIwZWxlZ2FudHxlbnwxfHx8fDE3NzM3ODg4NDh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral';
+
 const defaultReservationForm = {
   fullName: '',
   email: '',
@@ -213,51 +216,30 @@ function HomePage() {
         <section className="hero-section" id="home">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Mediterranean dining, reimagined</p>
               <h1>Little Lemon</h1>
               <p className="hero-city">Tokyo</p>
               <p className="hero-description">
-                A warm neighborhood restaurant for seasonal plates, intimate
-                dinners, and effortless table reservations.
+                A brief description of what type of food it offers.
+              </p>
+              <p className="hero-description">
+                Experience authentic Mediterranean cuisine with a modern twist in
+                the heart of Tokyo.
               </p>
 
               <div className="hero-actions">
                 <a className="button button-primary" href="#/reservations">
-                  Reserve a Table
+                  Booking
                 </a>
               </div>
-
-              <ul className="hero-highlights" aria-label="Key details">
-                <li>Open daily from 11:30 to 22:00</li>
-                <li>Signature lemon desserts and tasting menu</li>
-                <li>Walk-ins welcome, reservations recommended</li>
-              </ul>
             </div>
 
             <div className="hero-visuals">
-              <div className="hero-photo-card" aria-hidden="true">
-                <div className="photo-overlay">
-                  <span>Chef&apos;s Table</span>
-                  <strong>Seasonal tasting experience</strong>
-                </div>
-              </div>
-              <div className="hero-feature-strip" aria-label="Dining features">
-                <article className="hero-feature-card">
-                  <p className="hero-feature-label">Signature</p>
-                  <h2>Seasonal menu</h2>
-                  <p>
-                    Fresh Mediterranean plates with citrus-led flavors and a
-                    refined Tokyo presentation.
-                  </p>
-                </article>
-                <article className="hero-feature-card">
-                  <p className="hero-feature-label">Experience</p>
-                  <h2>Warm hospitality</h2>
-                  <p>
-                    Designed for date nights, group dinners, and memorable
-                    celebrations with smooth service.
-                  </p>
-                </article>
+              <div className="hero-photo-card">
+                <img
+                  className="hero-photo-image"
+                  src={homepageHeroImage}
+                  alt="Little Lemon restaurant interior"
+                />
               </div>
             </div>
           </div>
