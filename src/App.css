@@ -495,6 +495,34 @@ a {
   padding-bottom: 2rem;
 }
 
+.confirmed-page {
+  padding: 4rem 0 5rem;
+}
+
+.confirmed-section {
+  padding: 2rem 0;
+}
+
+.confirmed-card {
+  max-width: 760px;
+  padding: 2.25rem;
+  border: 1px solid rgba(57, 39, 33, 0.08);
+  border-radius: var(--radius-xl);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+}
+
+.confirmed-card h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 5vw, 4.4rem);
+  line-height: 1;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.confirmed-card .hero-description {
+  margin-top: 1.2rem;
+}
+
 .reservation-hero,
 .reservation-form-section {
   padding: 4.5rem 0;
@@ -591,6 +619,11 @@ a {
   resize: vertical;
 }
 
+.reservation-form select:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 .reservation-form input[aria-invalid='true'],
 .reservation-form select[aria-invalid='true'],
 .reservation-form textarea[aria-invalid='true'] {
@@ -602,6 +635,20 @@ a {
   color: #a43f2d;
   font-size: 0.84rem;
   line-height: 1.45;
+}
+
+.form-status {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.form-status-error {
+  color: #a43f2d;
+}
+
+.form-status-success {
+  color: var(--olive-deep);
 }
 
 .reservation-field-wide,
