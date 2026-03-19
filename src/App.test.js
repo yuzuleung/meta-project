@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+window.scrollTo = jest.fn();
+
+test('renders the Little Lemon hero heading', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const headingElement = screen.getByRole('heading', {
+    level: 1,
+    name: /little lemon/i,
+  });
+  expect(headingElement).toBeInTheDocument();
 });
