@@ -78,6 +78,15 @@ const defaultReservationForm = {
   requests: '',
 };
 
+function getTodayDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 function getFetchAPI() {
   return typeof window.fetchAPI === 'function' ? window.fetchAPI : null;
 }
@@ -109,12 +118,15 @@ function submitReservation(formData) {
 function validateReservationForm(values, availableTimes) {
   const errors = {};
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phonePattern = /^[+]?[\d\s()-]{8,20}$/;
+  const fullNamePattern = /^[A-Za-z\s]+$/;
+  const phonePattern = /^\d{11}$/;
 
   if (!values.fullName.trim()) {
     errors.fullName = 'Please enter your full name.';
   } else if (values.fullName.trim().length < 2) {
     errors.fullName = 'Name should be at least 2 characters.';
+  } else if (!fullNamePattern.test(values.fullName.trim())) {
+    errors.fullName = 'Name can only contain letters and spaces.';
   }
 
   if (!values.email.trim()) {
@@ -126,7 +138,7 @@ function validateReservationForm(values, availableTimes) {
   if (!values.phone.trim()) {
     errors.phone = 'Please enter your phone number.';
   } else if (!phonePattern.test(values.phone.trim())) {
-    errors.phone = 'Please enter a valid phone number.';
+    errors.phone = 'Phone number must contain exactly 11 digits.';
   }
 
   if (!values.guests) {
@@ -145,10 +157,6 @@ function validateReservationForm(values, availableTimes) {
 
   if (!values.seating) {
     errors.seating = 'Please choose a seating preference.';
-  }
-
-  if (!values.requests.trim()) {
-    errors.requests = 'Please add your special requests or write "None".';
   }
 
   return errors;
@@ -375,10 +383,17 @@ function BookingForm({ submitForm }) {
   const [touchedFields, setTouchedFields] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionError, setSubmissionError] = useState('');
+  const minDate = getTodayDateString();
 
-  const isFormComplete = Object.values(formValues).every(
-    (value) => value.trim() !== ''
-  );
+  const isFormComplete = [
+    formValues.fullName,
+    formValues.email,
+    formValues.phone,
+    formValues.guests,
+    formValues.date,
+    formValues.time,
+    formValues.seating,
+  ].every((value) => value.trim() !== '');
 
   useEffect(() => {
     if (!formValues.date) {
@@ -538,6 +553,7 @@ function BookingForm({ submitForm }) {
         <input
           type="date"
           name="date"
+          min={minDate}
           value={formValues.date}
           onChange={handleChange}
           onBlur={handleBlur}
