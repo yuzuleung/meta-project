@@ -3,6 +3,9 @@ import App from './App';
 
 window.scrollTo = jest.fn();
 
+const getDateInput = () => document.getElementById('date');
+const getTimeSelect = () => document.getElementById('time');
+
 const fillBaseReservationForm = () => {
   fireEvent.change(screen.getByLabelText(/full name/i), {
     target: { value: 'Alex Chen' },
@@ -58,10 +61,10 @@ test('loads available times from the API based on the selected date', () => {
   window.location.hash = '#/reservations';
   render(<App />);
 
-  const timeSelect = screen.getByLabelText(/^time$/i);
+  const timeSelect = getTimeSelect();
   expect(timeSelect).toBeDisabled();
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
 
@@ -75,7 +78,7 @@ test('date input does not allow selecting a past date', () => {
   window.location.hash = '#/reservations';
   render(<App />);
 
-  const dateInput = screen.getByLabelText(/^date$/i);
+  const dateInput = getDateInput();
   const today = new Date();
   const expectedMin = `${today.getFullYear()}-${String(
     today.getMonth() + 1
@@ -88,11 +91,11 @@ test('shows no times available when the API returns an empty list', () => {
   window.location.hash = '#/reservations';
   render(<App />);
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-25' },
   });
 
-  expect(screen.getByLabelText(/^time$/i)).toBeDisabled();
+  expect(getTimeSelect()).toBeDisabled();
   expect(
     screen.getByRole('option', { name: /no times available/i })
   ).toBeInTheDocument();
@@ -102,12 +105,12 @@ test('replaces previous time options when the selected date changes', () => {
   window.location.hash = '#/reservations';
   render(<App />);
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
   expect(screen.getByRole('option', { name: '19:00' })).toBeInTheDocument();
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-22' },
   });
 
@@ -119,9 +122,9 @@ test('clears the selected time when it becomes unavailable after changing the da
   window.location.hash = '#/reservations';
   render(<App />);
 
-  const timeSelect = screen.getByLabelText(/^time$/i);
+  const timeSelect = getTimeSelect();
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
   fireEvent.change(timeSelect, {
@@ -129,7 +132,7 @@ test('clears the selected time when it becomes unavailable after changing the da
   });
   expect(timeSelect).toHaveValue('19:00');
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-22' },
   });
 
@@ -144,10 +147,10 @@ test('shows an error when the name contains numbers or symbols', () => {
   fireEvent.change(screen.getByLabelText(/full name/i), {
     target: { value: 'Alex123!' },
   });
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
 
@@ -170,10 +173,10 @@ test('shows an error when the phone number is not exactly 11 digits', () => {
   fireEvent.change(screen.getByLabelText(/phone number/i), {
     target: { value: '09012-3456' },
   });
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
 
@@ -193,10 +196,10 @@ test('special requests is optional and the form can submit without it', () => {
   render(<App />);
 
   fillBaseReservationForm();
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
 
@@ -244,10 +247,10 @@ test('reservation button enables only after required fields are completed and sh
   fireEvent.change(screen.getByLabelText(/guests/i), {
     target: { value: '2 guests' },
   });
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
   fireEvent.change(screen.getByLabelText(/seating preference/i), {
@@ -271,10 +274,10 @@ test('submits the reservation through the API and navigates to confirmation page
   fireEvent.change(screen.getByLabelText(/special requests/i), {
     target: { value: 'Window seat please.' },
   });
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
 
@@ -306,10 +309,10 @@ test('shows an error and does not navigate when submitAPI returns false', () => 
   render(<App />);
 
   fillBaseReservationForm();
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
 
@@ -333,11 +336,11 @@ test('falls back safely when fetchAPI is unavailable', () => {
   delete window.fetchAPI;
   render(<App />);
 
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
 
-  expect(screen.getByLabelText(/^time$/i)).toBeDisabled();
+  expect(getTimeSelect()).toBeDisabled();
   expect(
     screen.getByRole('option', { name: /no times available/i })
   ).toBeInTheDocument();
@@ -349,10 +352,10 @@ test('falls back safely when submitAPI is unavailable', () => {
   render(<App />);
 
   fillBaseReservationForm();
-  fireEvent.change(screen.getByLabelText(/^date$/i), {
+  fireEvent.change(getDateInput(), {
     target: { value: '2026-03-21' },
   });
-  fireEvent.change(screen.getByLabelText(/^time$/i), {
+  fireEvent.change(getTimeSelect(), {
     target: { value: '19:00' },
   });
 

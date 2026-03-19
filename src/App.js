@@ -477,9 +477,30 @@ function BookingForm({ submitForm }) {
   const getFieldError = (fieldName) =>
     touchedFields[fieldName] || isSubmitted ? errors[fieldName] : '';
 
+  const getFieldAccessibilityProps = (fieldName, helperId = '') => {
+    const errorMessage = getFieldError(fieldName);
+    const describedBy = [helperId, errorMessage ? `${fieldName}-error` : '']
+      .filter(Boolean)
+      .join(' ');
+
+    return {
+      id: fieldName,
+      'aria-invalid': Boolean(errorMessage),
+      'aria-describedby': describedBy || undefined,
+    };
+  };
+
   return (
-    <form className="reservation-form" noValidate onSubmit={handleSubmit}>
-      <label className={getFieldError('fullName') ? 'field-error' : ''}>
+    <form
+      className="reservation-form"
+      noValidate
+      onSubmit={handleSubmit}
+      aria-labelledby="booking-form-heading"
+    >
+      <label
+        htmlFor="fullName"
+        className={getFieldError('fullName') ? 'field-error' : ''}
+      >
         Full name
         <input
           type="text"
@@ -488,14 +509,18 @@ function BookingForm({ submitForm }) {
           value={formValues.fullName}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('fullName'))}
+          autoComplete="name"
+          required
+          {...getFieldAccessibilityProps('fullName')}
         />
         {getFieldError('fullName') && (
-          <span className="error-message">{getFieldError('fullName')}</span>
+          <span className="error-message" id="fullName-error" role="alert">
+            {getFieldError('fullName')}
+          </span>
         )}
       </label>
 
-      <label className={getFieldError('email') ? 'field-error' : ''}>
+      <label htmlFor="email" className={getFieldError('email') ? 'field-error' : ''}>
         Email
         <input
           type="email"
@@ -504,14 +529,18 @@ function BookingForm({ submitForm }) {
           value={formValues.email}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('email'))}
+          autoComplete="email"
+          required
+          {...getFieldAccessibilityProps('email')}
         />
         {getFieldError('email') && (
-          <span className="error-message">{getFieldError('email')}</span>
+          <span className="error-message" id="email-error" role="alert">
+            {getFieldError('email')}
+          </span>
         )}
       </label>
 
-      <label className={getFieldError('phone') ? 'field-error' : ''}>
+      <label htmlFor="phone" className={getFieldError('phone') ? 'field-error' : ''}>
         Phone number
         <input
           type="tel"
@@ -520,21 +549,31 @@ function BookingForm({ submitForm }) {
           value={formValues.phone}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('phone'))}
+          autoComplete="tel"
+          inputMode="numeric"
+          pattern="\d{11}"
+          required
+          {...getFieldAccessibilityProps('phone', 'phone-helper')}
         />
+        <span className="field-helper" id="phone-helper">
+          Enter exactly 11 digits.
+        </span>
         {getFieldError('phone') && (
-          <span className="error-message">{getFieldError('phone')}</span>
+          <span className="error-message" id="phone-error" role="alert">
+            {getFieldError('phone')}
+          </span>
         )}
       </label>
 
-      <label className={getFieldError('guests') ? 'field-error' : ''}>
+      <label htmlFor="guests" className={getFieldError('guests') ? 'field-error' : ''}>
         Guests
         <select
           name="guests"
           value={formValues.guests}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('guests'))}
+          required
+          {...getFieldAccessibilityProps('guests')}
         >
           <option value="">Select guests</option>
           <option value="1 guest">1 guest</option>
@@ -544,11 +583,13 @@ function BookingForm({ submitForm }) {
           <option value="8 guests">8 guests</option>
         </select>
         {getFieldError('guests') && (
-          <span className="error-message">{getFieldError('guests')}</span>
+          <span className="error-message" id="guests-error" role="alert">
+            {getFieldError('guests')}
+          </span>
         )}
       </label>
 
-      <label className={getFieldError('date') ? 'field-error' : ''}>
+      <label htmlFor="date" className={getFieldError('date') ? 'field-error' : ''}>
         Date
         <input
           type="date"
@@ -557,22 +598,26 @@ function BookingForm({ submitForm }) {
           value={formValues.date}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('date'))}
+          required
+          {...getFieldAccessibilityProps('date')}
         />
         {getFieldError('date') && (
-          <span className="error-message">{getFieldError('date')}</span>
+          <span className="error-message" id="date-error" role="alert">
+            {getFieldError('date')}
+          </span>
         )}
       </label>
 
-      <label className={getFieldError('time') ? 'field-error' : ''}>
+      <label htmlFor="time" className={getFieldError('time') ? 'field-error' : ''}>
         Time
         <select
           name="time"
           value={formValues.time}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('time'))}
+          required
           disabled={!formValues.date || availableTimes.length === 0}
+          {...getFieldAccessibilityProps('time', 'time-helper')}
         >
           <option value="">
             {!formValues.date
@@ -585,14 +630,24 @@ function BookingForm({ submitForm }) {
             <option key={time} value={time}>
               {time}
             </option>
-          ))}
+            ))}
         </select>
+        <span className="field-helper" id="time-helper" aria-live="polite">
+          {!formValues.date
+            ? 'Choose a date to load available reservation times.'
+            : availableTimes.length > 0
+              ? `${availableTimes.length} times available for the selected date.`
+              : 'No times available for the selected date.'}
+        </span>
         {getFieldError('time') && (
-          <span className="error-message">{getFieldError('time')}</span>
+          <span className="error-message" id="time-error" role="alert">
+            {getFieldError('time')}
+          </span>
         )}
       </label>
 
       <label
+        htmlFor="seating"
         className={`reservation-field-wide ${
           getFieldError('seating') ? 'field-error' : ''
         }`}
@@ -603,7 +658,8 @@ function BookingForm({ submitForm }) {
           value={formValues.seating}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('seating'))}
+          required
+          {...getFieldAccessibilityProps('seating')}
         >
           <option value="">Select seating</option>
           <option value="Indoor dining room">Indoor dining room</option>
@@ -611,11 +667,14 @@ function BookingForm({ submitForm }) {
           <option value="Chef's counter">Chef&apos;s counter</option>
         </select>
         {getFieldError('seating') && (
-          <span className="error-message">{getFieldError('seating')}</span>
+          <span className="error-message" id="seating-error" role="alert">
+            {getFieldError('seating')}
+          </span>
         )}
       </label>
 
       <label
+        htmlFor="requests"
         className={`reservation-field-wide ${
           getFieldError('requests') ? 'field-error' : ''
         }`}
@@ -628,10 +687,15 @@ function BookingForm({ submitForm }) {
           value={formValues.requests}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={Boolean(getFieldError('requests'))}
+          {...getFieldAccessibilityProps('requests', 'requests-helper')}
         />
+        <span className="field-helper" id="requests-helper">
+          Optional. Add allergies, celebrations, or seating notes if needed.
+        </span>
         {getFieldError('requests') && (
-          <span className="error-message">{getFieldError('requests')}</span>
+          <span className="error-message" id="requests-error" role="alert">
+            {getFieldError('requests')}
+          </span>
         )}
       </label>
 
@@ -644,7 +708,9 @@ function BookingForm({ submitForm }) {
       </button>
 
       {submissionError && (
-        <p className="form-status form-status-error">{submissionError}</p>
+        <p className="form-status form-status-error" role="alert" aria-live="assertive">
+          {submissionError}
+        </p>
       )}
     </form>
   );
@@ -689,7 +755,7 @@ function ReservationsPage({ submitForm }) {
           <div className="container reservation-layout">
             <div className="reservation-form-card">
               <p className="booking-label">Booking form</p>
-              <h2>Complete your reservation</h2>
+              <h2 id="booking-form-heading">Complete your reservation</h2>
               <BookingForm submitForm={submitForm} />
             </div>
 
